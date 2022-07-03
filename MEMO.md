@@ -91,6 +91,7 @@ beとかはさすがに動詞として解析されたが、ここまで動詞が
 ```
 - 人の役職的なものは~~2にする~~1にする family は2
 
+#### ラベル付けの結果
 |ラベル|意味|例|語数|
 |:--:|:--:|:--:|:--:|
 |0|有生性なし||570|
@@ -98,8 +99,16 @@ beとかはさすがに動詞として解析されたが、ここまで動詞が
 |2|有生性があるかないか迷ったもの|agent<br>family<br>god|32|
 |3 |削除するもの|nobody<br>形容詞性の高い語<br>代名詞|5|
 
+### データの追加
+#### 候補
+- NGSLの普通のリスト以外のリスト(NGSL ACADEMIC WORD LIST, TOEIC LIST, BUSINESS SERVICE LIST)→普通のリストと合わせて6660語になる、ただしデータ形式がExcelじゃない(統一されてない)のと変化形や品詞などの情報がなく、フィルター方法がNLTK一本になる。
+- embedding の頻度順ソートから上位n語→最大300万、ただしフィルター方法がNLTK一本になる。
+- BNC Word Frequency Lists: BNC ( The British National Corpus )6318語
+BNCは堀田隆一先生の[#308. 現代英語の最頻英単語リスト -hellog～英語史ブログ](http://user.keio.ac.jp/~rhotta/hellog/2010-03-01-1.html) から見つけた、ほかにもNGSLは載ってないけどGSLは載ってた
 
-
+[BNC database and word frequency lists](http://www.kilgarriff.co.uk/bnc-readme.html)のlemma.numを使うことにした(ページを保存→txt形式で保存された)
+気づいたこととしてはpeopleが前のフィルター済み名詞リストにはなかった。不思議に思ってNGSL見返したらpeopled,peopling載ってた マジか～
+あと同じ単語が載っていることがある。行は[id, 出現回数, lemma, pos]という形になっててposは常に一行に一つなので、複数の品詞で使われる単語はその品詞とともに複数回登場するようになっている。このような仕様上pos=nの単語だけを取り出した後は単語が重複することはないと思われる。
 
 ## モデルの詳細
 `model = gensim.models.KeyedVectors.load_word2vec_format(model_dir, binary=True)`
@@ -187,6 +196,13 @@ nouns/nouns_v4.csv # filter_nouns_soft()で作成 v0からNLTKで「形容詞 no
 nouns/nouns_v5.csv # v4をコピー 手動で品詞が微妙なものや意味の明確性が低い物を除外しながらラベル付け、作業は[working]まで、701語
 nouns/nouns_v6.csv # v4をコピー 100語まで削減、意味の明確性が高いものを選んでラベル付け 100語
 nouns/nouns_v7.csv # v6にembeddingを結合したもの 100語
+nouns/nouns_v8.csv # V3をコピーして0,1,2,3のラベルをつけたもの 716語
+nouns/nouns_v8/nouns_v8.1.csv # v8をコピーしてラベル：3→削除、2→0 にしたもの
+nouns/nouns_v8/nouns_v8.1+em.csv # v8.1をコピーしてembeddingと結合したもの
+nouns/nouns_v8/nouns_v8.2.csv # v8をコピーしてラベル：3→削除、2→1 にしたもの
+nouns/nouns_v8/nouns_v8.2+em.csv # v8.2をコピーしてembeddingと結合したもの
+nouns/nouns_v9.csv # BNCから品詞がnとなっているものを抽出、3262語
+nouns/nouns_v10.csv # v9をコピーしてラベル付け、3262語
 ```
 
 ## 補足

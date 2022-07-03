@@ -146,17 +146,17 @@ def compare_soft_hard_filter():
 
 def divert_label():
     """
-    別のファイルにつけたアノテーションを転用する
+    別のファイルにつけたラベルを転用する
     """
     nouns_list_from = {}
-    with open('nouns/nouns_v6.csv') as f:
+    with open('nouns/nouns_v8.csv') as f: # ラベル付け済みファイル ラベル参照先
         reader = csv.reader(f)
         _ = next(reader) # skip headline
         for row in reader:
             lemma, label = row
             nouns_list_from[lemma] = label
     nouns_list_to = []
-    with open('nouns/nouns_v3.csv') as f:
+    with open('nouns/nouns_v9.csv') as f: # 未ラベル付けファイル 単語参照先
         reader = csv.reader(f)
         for row in reader:
             lemma = row[0]
@@ -164,8 +164,9 @@ def divert_label():
                 nouns_list_to.append([lemma, nouns_list_from[lemma]])
             else:
                 nouns_list_to.append([lemma, ''])
-    with open('nouns/nouns_v8.csv', 'w', newline="") as f:
+    with open('nouns/nouns_v10.csv', 'w', newline="") as f: # 出力先
         writer = csv.writer(f)
+        writer.writerow(['lemma', 'animacy'])
         for item in nouns_list_to:
             writer.writerow(item)
 
@@ -215,10 +216,23 @@ def count_label():
                 count[label] = 1
                 print(label, lemma)
         print(count)
-            
+
+def extract_nouns_from_BNC():
+    with open('data/lemma.num.txt') as f:
+        lines = f.readlines()
+        with open('nouns/nouns_v9.csv', 'w', newline="") as w:
+            writer = csv.writer(w)
+            for line in lines:
+                line = line.split()
+                lemma = line[2]
+                if 'n' in line:
+                    writer.writerow([lemma])
+
         
 
 if __name__ == '__main__':
     #divert_label()
-    count_label()
+    #count_label()
     #arrange_label()
+    #extract_nouns_from_BNC()
+    divert_label()
