@@ -9,8 +9,6 @@ import matplotlib.pyplot as plt
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 from sklearn.model_selection import cross_validate
 
-
-
 def load_embedding():
     with open('embedding/embedding.pickle', 'rb') as f:
         model = pickle.load(f)
@@ -74,7 +72,15 @@ def check_mistake_in_cross_validate():
     print(scores['test_accuracy'])
     print(scores['test_accuracy'].mean())
 
+def temp():
+    df = pd.read_csv('nouns/nouns_v8/nouns_v8.2+em.csv', encoding='utf-8')
+    X = df.drop(['lemma', 'animacy'], axis=1) # 説明変数: embedding
+    y = df['animacy'] # 目的変数: 有生性
+    words = df['lemma']
+    print(X)
+
 if __name__ == '__main__':
     #check_prediction()
-    lda()
+    #lda()
     #print_df()
+    temp()
