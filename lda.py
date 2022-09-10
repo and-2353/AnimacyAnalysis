@@ -18,6 +18,7 @@ def load_embedding():
         return model
 
 def print_df():
+    print('\n\n')
     df = pd.read_csv('nouns/nouns_v8/nouns_v8.2+em.csv')
     print(df)
 
@@ -99,7 +100,7 @@ def temp():
 if __name__ == '__main__':
     #check_prediction()
     #lda()
-    #print_df()
+    print_df()
     #temp()
-    cross_validate()
+    #cross_validate()
     #check_mistake_in_cross_validate()

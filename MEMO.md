@@ -15,18 +15,22 @@
 ```
 という形に整備
 
-- 判別分析・SVM にかける
-- NN にかける←この意味があんまりあるかも微妙だな 表現力の低いモデルで判別できてないなら意味はない？でも本当に有生性が予測できないならNNでもできないしできるかどうかは意味があるといえるか...
+- 判別分析・~~SVM~~ にかける
+- ~~NN にかける←この意味があんまりあるかも微妙だな 表現力の低いモデルで判別できてないなら意味はない？でも本当に有生性が予測できないならNNでもできないしできるかどうかは意味があるといえるか...~~
 - 次元削減してからかける←結果は変わるのかな～
 
 > 本当は全く判別しようのないラベルづけや逆に明らかに判別できそうな（名詞・形容詞とか）も判別できるかをコントロール？として同じ判別分析やらSVM/NNやらにかけたほうがいい
 
 
 その後、
-- 有生性を明示的に結合して、精度は上がるかみたいなこと(ELMo寄り)
+- ~~有生性を明示的に結合して、精度は上がるかみたいなこと(ELMo寄り)~~
   - embeddingに有生性の情報が含まれていない/明らかに含まれているとは言えない みたいな状況なら、「ではこの情報は常識理解を助けるからあったほうがいいと思う」と仮説が立って、この方向に持っていけてる。さらに精度の向上が果たせることが理想ではある（そうすれば、意味理解に有生性の概念は助けになることが示唆できる）今は全然無理なことだけど、有生性によって文法的に違いが出る言語ではその影響は強いかみたいなことも知りたい。
 
 有生性のラベル付け結果はデータ公開したいな
+- 判別確率出して閾値付近か見る
+- 係数出してどの次元が重要か見る
+- ラベル付け進める
+- 卒論(序論,抄録)書く
 
 ## やったこと
 ### モデルの入手
@@ -34,11 +38,91 @@ https://code.google.com/archive/p/word2vec/ からもってきた`./GoogleNews-v
 
 多分(シンプルな)word2vec。fasttext とかじゃないと思うけどこれ何のモデルのembedding なのかちゃんと調べないとな
 
+> 補足
+> - gensim内にあるモデルの読み込みもできるっぽい
+> ```
+> import gensim.downloader as api
+> model = api.load('glove-wiki-gigaword-50')
+> ```
+> (あまり詳しく書いてないけど)参考：https://kento1109.hatenablog.com/entry/2018/03/15/153652
+
+
 ### 格納
 https://kento1109.hatenablog.com/entry/2018/03/15/153652 を参考に、gensimをつかって読み込み・pickleで直列化
 
 ### モデルの調査
-詳細は[モデルの詳細](#モデルの詳細)
+`model = gensim.models.KeyedVectors.load_word2vec_format(model_dir, binary=True)`
+
+は `<class 'gensim.models.keyedvectors.Word2VecKeyedVectors'>` 型のインスタンス
+メンバ変数とその値の型は以下の通り
+|メンバ変数|値の型|備考|
+|:--:|:--:|:--:|
+|vectors |<class 'numpy.ndarray'>|300万×300|
+|vocab |<class 'dict'> ||
+|vector_size |<class 'int'>|300|
+|index2word |<class 'list'>||
+|vectors_norm| <class 'NoneType'>||
+
+> ※`model['dog']` or `model.wv['dog']` とかで分散表現にアクセスできるので、`index2word`とか`vectors`とか`vocab`とか使う必要ないかも
+
+#### 変数
+
+##### vectors
+- <class 'numpy.ndarray'>
+  - 2次元
+  - shape = (3000000, 300)
+
+##### vocab
+- dict
+  - key: str (見出し語)
+  - value: <gensim.models.keyedvectors.Vocab object>
+    - count (多分登場した数)
+    - index
+```
+vars(model.vocab['dog'])
+>>> {'count': 2997957, 'index': 2043}
+```
+ここに 分散表現はない！
+
+##### vector_size
+- int
+- 定数(300)
+> 分散表現の次元数が300
+
+##### index2word
+- list
+
+```
+pprint(model.index2word)
+--> 見出し語が次々に出力された
+ABC順にソートされてる感じでは特にない
+```
+添字がindexってことかな～ それならタプルのほうがいいんじゃないの？とは少し思う
+
+`len(model.index2word)` は 3,000,000だったので、語彙数が300万だと思う！
+
+##### vectors_norm
+NoneType、値はNone、インスタンス生成時に値が登録されてない変数
+ベクトルのノルムはベクトルの長さ、多分使わないかな～と思う
+
+#### 疑問点など
+##### wv とは
+内部のembedding は`model.wv` によって得ているの何なんだろう wvもメンバ変数てこと？ちょっとよくわかってない
+> wvはスーパークラスの変数で__dict__では表示されない みたいなことはあり得る？
+```
+print(model['dog'] == model.wv['dog'])
+>>> 要素ごと表示, だけど全部True
+
+print(model == model.wv)
+>>> True
+
+print(model is model.wv)
+>>> True <--- IDも同じ！
+```
+`model`, `model.wv` の`type`は同じ(`Word2VecKeyedVectors`)
+`model.__dict__.items()` と `model.wv.__dict__.items()` も同じ
+`wv` を使う意味はあんまり分からないかなと思う。
+> `print(model.wv.wv.wv.wv.wv)` とか書いても動く なんだこれ
 
 ### 判別分析・SVMにかけるデータの整備
 1. NGSLをつかって名詞を抽出
@@ -150,108 +234,9 @@ lda.py/LDA() でLDA(学習データ=テストデータ)
 
 ランダムなラベルのデータと有生性ラベルのデータについて、LeaveOneOutも試してみようということになったけど、バグによりそれは行き詰まり中。
 
-## モデルの詳細
-`model = gensim.models.KeyedVectors.load_word2vec_format(model_dir, binary=True)`
 
-は `<class 'gensim.models.keyedvectors.Word2VecKeyedVectors'>` 型のインスタンス
-メンバ変数とその値の型は以下の通り
-|メンバ変数|値の型|備考|
-|:--:|:--:|:--:|
-|vectors |<class 'numpy.ndarray'>|300万×300|
-|vocab |<class 'dict'> ||
-|vector_size |<class 'int'>|300|
-|index2word |<class 'list'>||
-|vectors_norm| <class 'NoneType'>||
 
-> ※`model['dog']` or `model.wv['dog']` とかで分散表現にアクセスできるので、`index2word`とか`vectors`とか`vocab`とか使う必要ないかも
 
-### 変数
-
-#### vectors
-- <class 'numpy.ndarray'>
-  - 2次元
-  - shape = (3000000, 300)
-
-#### vocab
-- dict
-  - key: str (見出し語)
-  - value: <gensim.models.keyedvectors.Vocab object>
-    - count (多分登場した数)
-    - index
-```
-vars(model.vocab['dog'])
->>> {'count': 2997957, 'index': 2043}
-```
-ここに 分散表現はない！
-
-#### vector_size
-- int
-- 定数(300)
-> 分散表現の次元数が300
-
-#### index2word
-- list
-
-```
-pprint(model.index2word)
---> 見出し語が次々に出力された
-ABC順にソートされてる感じでは特にない
-```
-添字がindexってことかな～ それならタプルのほうがいいんじゃないの？とは少し思う
-
-`len(model.index2word)` は 3,000,000だったので、語彙数が300万だと思う！
-
-#### vectors_norm
-NoneType、値はNone、インスタンス生成時に値が登録されてない変数
-ベクトルのノルムはベクトルの長さ、多分使わないかな～と思う
-
-## 疑問点など
-### wv とは
-内部のembedding は`model.wv` によって得ているの何なんだろう wvもメンバ変数てこと？ちょっとよくわかってない
-> wvはスーパークラスの変数で__dict__では表示されない みたいなことはあり得る？
-```
-print(model['dog'] == model.wv['dog'])
->>> 要素ごと表示, だけど全部True
-
-print(model == model.wv)
->>> True
-
-print(model is model.wv)
->>> True <--- IDも同じ！
-```
-`model`, `model.wv` の`type`は同じ(`Word2VecKeyedVectors`)
-`model.__dict__.items()` と `model.wv.__dict__.items()` も同じ
-`wv` を使う意味はあんまり分からないかなと思う。
-> `print(model.wv.wv.wv.wv.wv)` とか書いても動く なんだこれ
-
-## データの整理
-```
-data/pos_of_words_in_NGSL # NGSLの全ての語、nltkで品詞推定 2801語
-data/nouns_not_filtered.csv # NGSLから語形変化が1つだけ載ってるものを名詞とみなし、抽出、827語
-nouns/nouns_v0.csv # 上のコピー、827語
-nouns/nouns_v1.csv # v0から手動で名詞でない語を取り除く、作業は[working] まで
-nouns/nouns_v2.csv # v0から手動で名詞でない語を取り除く、語数も大幅にカット、作業は[working] まで、81語、
-nouns/nouns_v3.csv # filter_nouns_hard()で作成 v0からNLTKで「名詞 in 品詞名」であるものを抽出、716語
-nouns/nouns_v4.csv # filter_nouns_soft()で作成 v0からNLTKで「形容詞 not in 品詞名」であるものを抽出、741語
-nouns/nouns_v5.csv # v4をコピー 手動で品詞が微妙なものや意味の明確性が低い物を除外しながらラベル付け、作業は[working]まで、701語
-nouns/nouns_v6.csv # v4をコピー 100語まで削減、意味の明確性が高いものを選んでラベル付け 100語
-nouns/nouns_v7.csv # v6にembeddingを結合したもの 100語
-nouns/nouns_v8.csv # V3をコピーして0,1,2,3のラベルをつけたもの 716語
-nouns/nouns_v8/nouns_v8.1.csv # v8をコピーしてラベル：3→削除、2→0 にしたもの
-nouns/nouns_v8/nouns_v8.1+em.csv # v8.1をコピーしてembeddingと結合したもの
-nouns/nouns_v8/nouns_v8.2.csv # v8をコピーしてラベル：3→削除、2→1 にしたもの
-nouns/nouns_v8/nouns_v8.2+em.csv # v8.2をコピーしてembeddingと結合したもの
-nouns/nouns_v9.csv # BNCから品詞がnとなっているものを抽出、3262語
-nouns/nouns_v10.csv # v9をコピーしてラベル付け、3262語
-```
-
-## 補足
-- gensim内にあるモデルの読み込みもできるっぽい
-```
-import gensim.downloader as api
-model = api.load('glove-wiki-gigaword-50')
-```
-(あまり詳しく書いてないけど)参考：https://kento1109.hatenablog.com/entry/2018/03/15/153652
 
 ## 参考/使えそうなページ
 - https://code.google.com/archive/p/word2vec/
