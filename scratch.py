@@ -39,24 +39,53 @@ def random_labeling():
     
     """
     for i in range(1,4):
-        zeros = [0 for i in range(355)]
-        ones = [1 for i in range(356)]
+        zeros = [0 for i in range(1604)]
+        ones = [1 for i in range(1604)]
         labels = zeros + ones
         random.shuffle(labels)
 
-        with open(f'nouns/nouns_random_label/nouns_random_label(half).csv', 'w', newline="") as f: # 出力先
+        with open(f'nouns/nouns_random_label/3208/nouns_random_label(half).csv', 'w', newline="") as f: # 出力先
             writer = csv.writer(f)
-            header = ['lemma', 'animacy']
-            writer.writerow(header)
-            with open('nouns/nouns_v8.csv') as f_r:
+            # header = ['lemma', 'animacy']
+            # writer.writerow(header)
+            with open('nouns/nouns_random_label/3208/nouns_random_label_temp.csv') as f_r:
                     reader = csv.reader(f_r)
                     _ = next(reader) # skip headline
                     for label, row in zip(labels, reader):
                         lemma = row[0]
                         writer.writerow([lemma, label])
         break
-                    
+
+
+def remove_lemma_with_no_embedding():
+    """
+    embedding.pickeの見出し語として登録されていない語を取り除く。
+        csv(lemma,animacy) 形式を入力とし、
+        csv(lemma,animacy) 形式を出力する。
+    """
+    keyerror_num = 0
+    with open('embedding/embedding.pickle', 'rb') as em:
+        model = pickle.load(em)
+        with open('nouns/nouns_random_label/3208/nouns_random_label_temp.csv', 'w', newline="") as f_w:
+            writer = csv.writer(f_w)
+            with open('nouns/nouns_v10/nouns_v10.csv') as f_r:
+                reader = csv.reader(f_r)
+                
+                for row in reader:
+                    try:
+                        lemma = row[0]
+                        animacy = row[1]
+                        _ = model[lemma] # model[lemma] がなければ except へ
+                        if animacy == "3":
+                            continue
+                        writer.writerow(row)
+                    except KeyError:
+                        print(f"{row[0]}: KeyError")
+                        keyerror_num += 1
+                        continue
+    print(keyerror_num)
 
 if __name__ == '__main__':
     #check_embedding_norm()
     random_labeling()
+    #remove_lemma_with_no_embedding()

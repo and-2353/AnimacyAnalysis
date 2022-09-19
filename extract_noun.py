@@ -178,11 +178,11 @@ def arrange_label():
         3は除去する
     """
     nouns_list_from = {}
-    with open('nouns/nouns_v8.csv') as f:
+    with open('nouns/nouns_v10/nouns_v10.csv') as f:
         reader = csv.reader(f)
         headline = next(reader) 
-        with open('nouns/nouns_v8/nouns_v8.1.csv', 'w', newline="") as w1:
-            with open('nouns/nouns_v8/nouns_v8.2.csv', 'w', newline="") as w2:
+        with open('nouns/nouns_v10/nouns_v10.1.csv', 'w', newline="") as w1:
+            with open('nouns/nouns_v10/nouns_v10.2.csv', 'w', newline="") as w2:
                 writer1 = csv.writer(w1)
                 writer2 = csv.writer(w2)
                 writer1.writerow(headline)
@@ -204,12 +204,14 @@ def count_label():
     """
     各ラベルの語数を数える
     """
-    with open('nouns/nouns_v8/nouns_v8.2.csv') as f:
+    with open('nouns/nouns_v10/nouns_v10.1+em.csv') as f:
         reader = csv.reader(f)
-        _ = next(reader) # skip headline
+        #_ = next(reader) # skip headline
         count = {}
         for row in reader:
-            lemma, label = row
+            #lemma, label = row
+            lemma = row[0]
+            label = row[-1]
             if label in count:
                 count[label] += 1
             else:
@@ -232,7 +234,7 @@ def extract_nouns_from_BNC():
 
 if __name__ == '__main__':
     #divert_label()
-    #count_label()
+    count_label()
     #arrange_label()
     #extract_nouns_from_BNC()
-    divert_label()
+    #divert_label()
