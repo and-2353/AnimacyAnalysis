@@ -1,5 +1,5 @@
 # Animacy
-###### README最終更新: `2022-06-29`
+###### README最終更新: `2022-09-20`
 
 - **卒業研究** 
 - 名詞の有生性についての研究
@@ -7,17 +7,37 @@
 
 ---
 
-## ファイルの概要
-### dump.py
-https://code.google.com/archive/p/word2vec/ からもってきた`./GoogleNews-vectors-negative300.bin.gz`を7zipで解凍して得た `./GoogleNews-vectors-negative300.bin`をpickleで直列化する
-> - `embedding/GoogleNews-vectors-negative300.bin.gz`
-> - `embedding/GoogleNews-vectors-negative300.bin`
-> - `embedding/embedding.pickle`
-> はサイズが大きいので追跡対象外
+## ファイル・ディレクトリの概要
+- `/archive/` つかってないファイルなど
+  - `/data/`つかってないデータ(使ってるファイルも昔の名前で入ってたりする)
+  - `archive.py` つかってないコード
+  - `ARCHIVE.md` 前使ってたデータとその概要の紐づけ
+- `/data/` 加工前のデータ or 加工途中のデータ
+  - `/BNC/`
+  - `/NGSL/`
+  - `embedding` ← gitの追跡対象外 
+- `/extracted_data/` 加工途中のデータ or 加工済みデータ
+  - `/BNC/`
+  - `/NGSL/`
+- `/memo/` 進捗報告に使った図、研究メモ
+- `dataprocessing.py` データ加工
+- `lda.py` LDA,LDA(loo) など
 
+---
+
+## `Git Clone` 後の 環境作成
+- `data/embedding/GoogleNews-vectors-negative300.bin.gz`
+- `data/embedding/GoogleNews-vectors-negative300.bin`
+- `data/embedding/embedding.pickle`
+
+はサイズが大きいので追跡対象外としている。プログラムを動かすには`data/embedding/embedding.pickle` が必要なものが多くあるので、これを用意する。用意の仕方は以下
+
+1. `https://code.google.com/archive/p/word2vec/` から`./GoogleNews-vectors-negative300.bin.gz`をダウンロード・(7zipなどで)解凍
+2. 得た `./GoogleNews-vectors-negative300.bin`をpickleで直列化する(直列化は`archive/archive.py` の `dump` 関数 のパスをいじったらできるはず)
+
+---
 
 ## `extracted_nouns` ディレクトリ内のデータの命名規則
-
 |記号|意味|
 |:--:|:--|
 |`nouns_bnc`|BNCから作成したデータ|
