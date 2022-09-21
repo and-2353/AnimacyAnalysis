@@ -5,6 +5,7 @@ import pickle
 from pprint import pprint
 import numpy as np
 import random
+import openpyxl
 
 def arrange_label(file_r, file_w1, file_w2):
     """
@@ -13,7 +14,6 @@ def arrange_label(file_r, file_w1, file_w2):
         2を1にするファイル(csv形式, file_w2)を作る
         3は除去する
     """
-    nouns_list_from = {}
     with open(file_r) as f:
         reader = csv.reader(f)
         headline = next(reader) 
@@ -141,10 +141,84 @@ def remove_no_embedding_lemma(file_em, file_r, file_w):
                         print(f"{row[0]}: KeyError")
                         keyerror_num += 1
                         continue
-    print(keyerror_num)
+    print('keyerror_num:', keyerror_num)
+
+def extract_animate_and_middle_words(file_r, file_w):
+    """
+    有生性ラベルが 有生性あり or 迷う(1 or 2) の語を抽出する。
+        入力:csv(lemma, animacy の2列, headlineなしを想定)
+        出力:xlsx(seat:[1, 2](有生性ラベルを示す), 各シートlemma, animacyの2列)
+    """
+    extracted_nums = {1:2, 2:2} # SheetName: RowNo.
+    wb = openpyxl.Workbook()
+    wb.worksheets[0].title = "1"
+    wb.create_sheet(title="2")
+    with open(file_r) as f_r:
+        reader = csv.reader(f_r)        
+        for row in reader:
+            lemma = row[0]
+            animacy = int(row[1])
+            if animacy in (1, 2):
+                ws = wb[str(animacy)]
+                row = str(extracted_nums[animacy])
+                ws["A"+row] = lemma
+                ws["B"+row] = animacy
+                extracted_nums[animacy] += 1
+    wb.save(file_w)
+
+def extract_words_by_label(file_r, file_w, label):
+    """
+    有生性ラベルが label の語を抽出する。
+        入力:csv(lemma, animacy の2列, headlineなしを想定)
+        出力:csv(lemma, animacy の2列, headlineなしを想定)
+    """
+    extracted_num = 0
+    with open(file_w, 'w', newline="") as f_w:
+        writer = csv.writer(f_w)
+        with open(file_r) as f_r:
+            reader = csv.reader(f_r)        
+            for row in reader:
+                lemma, animacy = row
+                if animacy == str(label):
+                    writer.writerow(row)
+                    extracted_num += 1
+    print('抽出語数:', extracted_num)
+    
+
+def arrange_balanced_data(file_ani, file_inani, file_w):
+    ani_words = []
+    with open(file_ani) as ani:
+        reader = csv.reader(ani)        
+        for row in reader:
+            ani_words.append(row)
+    n_ani_words = len(ani_words)
+
+    inani_words = []
+    with open(file_inani) as inani:
+        reader_ = csv.reader(inani)
+        for row in reader_:
+            inani_words.append(row)
+    inani_words_squeezed = random.sample(inani_words, n_ani_words)
+    balanced_data = ani_words + inani_words_squeezed
+    random.shuffle(balanced_data)
+    print("num of words in balanced_data:", len(balanced_data))
+
+    with open(file_w, 'w', newline="") as f_w:
+        writer = csv.writer(f_w)
+        for row in balanced_data:
+            writer.writerow(row)
+    
 
 if __name__ == '__main__':
     file_em = 'data/embedding/embedding.pickle'
-    file_r = None
-    file_w = None
-    #arrange_data_to_discriminant_analysis()
+    #file_r = 'extracted_nouns/BNC/nouns_bnc+lbl+key.csv'
+    file_ani = 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani.csv'
+    file_inani = 'extracted_nouns/BNC/nouns_bnc+lbl+key-ani.csv'
+    file_r = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bld.csv'
+    file_w = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bld+em.csv'
+    # arrange_data_to_discriminant_analysis()
+    # extract_animate_words(file_r, file_w)
+    # extract_words_by_label(file_r, file_w1, 1)
+    # extract_words_by_label(file_r, file_w2, 0)
+    # arrange_balanced_data(file_ani, file_inani, file_w)
+    arrange_data_to_discriminant_analysis(file_em, file_r, file_w)

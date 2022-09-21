@@ -14,7 +14,7 @@ from sklearn.model_selection import cross_validate
 from sklearn.model_selection import LeaveOneOut
 
 
-def loo(file_for_lda, print_missclassified_word=false):
+def loo(file_for_lda, print_missclassified_word=False, cross_tabulation=True):
     df = pd.read_csv(file_for_lda, encoding='utf-8')
 
     X = df.drop(['lemma', 'animacy'], axis=1) # 説明変数: embedding
@@ -36,9 +36,19 @@ def loo(file_for_lda, print_missclassified_word=false):
             lemma = re.sub('.*\s', '', words[word_id])
             acc_label = y[word_id]
             print(f'|{lemma}||{acc_label}|')
+    if cross_tabulation:
+        assert len(scores['test_score']) == len(words)
+        nums = {}
+        for is_right, answer in zip(scores['test_score'], y):
+            pa = (int(is_right), answer)
+            if pa not in nums:
+                nums[pa] = 1
+            else:
+                nums[pa] += 1
+        print(f'クロス集計結果\n,有生,無生\n正解,{nums[(1,1)]},{nums[(1,0)]}\n不正解,{nums[(0,1)]},{nums[(0,0)]}') 
         
 
-def lda(file_for_lda, print_missclassified_word=false):
+def lda(file_for_lda, print_missclassified_word=False):
     df = pd.read_csv(file_for_lda, encoding='utf-8')
     X = df.drop(['lemma', 'animacy'], axis=1) # 説明変数: embedding
     y = df['animacy'] # 目的変数: 有生性
@@ -63,6 +73,6 @@ def lda(file_for_lda, print_missclassified_word=false):
 
 
 if __name__ == '__main__':
-    file_for_lda = None
+    file_for_lda = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bld+em.csv'
     #lda()
-    #loo()
+    loo(file_for_lda, False, False)
