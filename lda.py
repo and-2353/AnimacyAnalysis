@@ -45,7 +45,12 @@ def loo(file_for_lda, print_missclassified_word=False, cross_tabulation=True):
                 nums[pa] = 1
             else:
                 nums[pa] += 1
-        print(f'クロス集計結果\n,有生,無生\n正解,{nums[(1,1)]},{nums[(1,0)]}\n不正解,{nums[(0,1)]},{nums[(0,0)]}') 
+        #print(f'クロス集計結果\n,有生,無生\n正解,{nums[(1,1)]},{nums[(1,0)]}\n不正解,{nums[(0,1)]},{nums[(0,0)]}')
+        TP, TN, FP, FN = nums[(1,1)], nums[(1,0)], nums[(0,0)], nums[(0,1)]
+        precision = TP/(TP+FP)
+        recall = TP/(TP+FN)
+        f_measure = (2*precision*recall)/(precision+recall)
+        print(f"適合率(precision): {precision}, 再現率(recall): {recall}, F値(f-measure): {f_measure}")
         
 
 def lda(file_for_lda, print_missclassified_word=False):
@@ -71,8 +76,25 @@ def lda(file_for_lda, print_missclassified_word=False):
     print('誤判別語数：', mistake)
 
 
+def prediction(file_for_fit, file_for_pred):
+    df_fit = pd.read_csv(file_for_fit, encoding='utf-8')
+    X_fit = df_fit.drop(['lemma', 'animacy'], axis=1) # 説明変数: embedding
+    y_fit = df_fit['animacy'] # 目的変数: 有生性
+    words = df_fit['lemma']
+    clf = LDA()
+    clf.fit(X_fit, y_fit)
+
+    df_pred = pd.read_csv(file_for_pred, encoding='utf-8')
+    X_pred = df_fit.drop(['lemma', 'animacy'], axis=1) # 説明変数: embedding
+    print("predict:")
+    print(clf.predict(X_pred))
+    print("\npredict_prob:")
+    print(clf.predict_proba(X_pred))
+
 
 if __name__ == '__main__':
-    file_for_lda = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bld+em.csv'
-    #lda()
-    loo(file_for_lda, False, False)
+    file_for_fit = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bi3+em.csv'
+    file_for_pred = 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani_mid+micro+em.csv'
+    # lda()
+    # loo(file_for_lda, False, True)
+    prediction(file_for_fit, file_for_pred)
