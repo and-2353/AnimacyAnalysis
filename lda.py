@@ -77,6 +77,8 @@ def lda(file_for_lda, print_missclassified_word=False):
 
 
 def prediction(file_for_fit, file_for_pred):
+    
+    # 0/1 のデータにfit
     df_fit = pd.read_csv(file_for_fit, encoding='utf-8')
     X_fit = df_fit.drop(['lemma', 'animacy'], axis=1) # 説明変数: embedding
     y_fit = df_fit['animacy'] # 目的変数: 有生性
@@ -84,17 +86,20 @@ def prediction(file_for_fit, file_for_pred):
     clf = LDA()
     clf.fit(X_fit, y_fit)
 
+    # 特定のデータでpredict
     df_pred = pd.read_csv(file_for_pred, encoding='utf-8')
-    X_pred = df_fit.drop(['lemma', 'animacy'], axis=1) # 説明変数: embedding
-    print("predict:")
-    print(clf.predict(X_pred))
-    print("\npredict_prob:")
-    print(clf.predict_proba(X_pred))
+    X_pred = df_pred.drop(['lemma', 'animacy'], axis=1) # 説明変数: embedding
+    words_pred = df_pred['lemma']
+    pred = clf.predict(X_pred)
+    pred_proba = clf.predict_proba(X_pred)
+    print('\n|語|予測|有生性なし(0)に所属する確率|\n|:--:|:--:|:--:|')
+    for i, word in enumerate(words_pred):
+        print(f'|{word}|{pred[i]}|{pred_proba[i][0]:.4%}|')
 
 
 if __name__ == '__main__':
-    file_for_fit = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bi3+em.csv'
-    file_for_pred = 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani_mid+micro+em.csv'
+    file_for_fit = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bld+em.csv'
+    file_for_pred = 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani_mid+plant+em.csv'
     # lda()
     # loo(file_for_lda, False, True)
     prediction(file_for_fit, file_for_pred)

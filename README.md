@@ -33,7 +33,7 @@
 はサイズが大きいので追跡対象外としている。プログラムを動かすには`data/embedding/embedding.pickle` が必要なものが多くあるので、これを用意する。用意の仕方は以下
 
 1. `https://code.google.com/archive/p/word2vec/` から`./GoogleNews-vectors-negative300.bin.gz`をダウンロード・(7zipなどで)解凍
-2. 得た `./GoogleNews-vectors-negative300.bin`をpickleで直列化する(直列化は`archive/archive.py` の `dump` 関数 のパスをいじったらできるはず)
+2. 得た `./GoogleNews-vectors-negative300.bin`をpickleで直列化する(※直列化には、`archive/archive.py` の `dump` 関数 が利用できる。この関数の場所を変えたり、関数内で参照しているパスをいじったらできるはず)
 
 ---
 
@@ -53,6 +53,14 @@
 |`-ani`|有生性ラベルが(0)に該当する語を抽出済|
 |`+ani_mid`|有生性ラベルが(1, 2)のいずれかに該当する語を抽出済|
 |`+bld`|balanced、有生性ラベル1と0の数を等しくしてある|
+|`+collective`|集合的な有生物|
+|`+micro`|細胞・微生物・ウイルス|
+|`+plant`|植物|
+|`+spirit`|神・精霊・霊魂・天使・空想のもの|
+|`+special`|気になったもの|
+|`+bi3`|(0,1,2,3)の4値を(3→削除), (2→削除)として2値のラベルに変更済|
+
+
 
 - BNC から作成したデータ：
   - BNC (6318語)のうち品詞が「n」(名詞) である3262語 から作成したデータ群
