@@ -111,7 +111,7 @@ def random_labeling(file_r, file_w, n_zero, n_one):
         with open(file_r) as f_r:
             reader = csv.reader(f_r)
             _ = next(reader) # skip headline
-            assert len(labels) == len(reader)
+            #assert len(labels) == len(reader)
             for label, row in zip(labels, reader):
                 lemma = row[0]
                 writer.writerow([lemma, label])
@@ -253,18 +253,28 @@ if __name__ == '__main__':
     # file_r = 'extracted_nouns/BNC/nouns_bnc+lbl+key.csv'
     # file_ani = 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani.csv'
     # file_inani = 'extracted_nouns/BNC/nouns_bnc+lbl+key-ani.csv'
-    # file_r = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bld.csv'
+    # file_w = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bld(3).csv'
+    # file_ww = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bld(3)+em.csv'
+    file_r = 'extracted_nouns/BNC/nouns_bnc+lbl+key.csv'
+    files = ['extracted_nouns/BNC/nouns_bnc+lbl+key+rl(1=369)(2).csv', 'extracted_nouns/BNC/nouns_bnc+lbl+key+rl(1=369)(3).csv']
+    files_ = ['extracted_nouns/BNC/nouns_bnc+lbl+key+rl(1=369)(2)+em.csv', 'extracted_nouns/BNC/nouns_bnc+lbl+key+rl(1=369)(3)+em.csv']
+    n_zero, n_one = 2839, 369
+    for i in range(2):
+        file_w = files[i]
+        file_ww = files_[i]
+        random_labeling(file_r, file_w, n_zero, n_one)
+        arrange_data_to_discriminant_analysis(file_em, file_w, file_ww)
     # file_w = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bld+em.csv'
     # arrange_data_to_discriminant_analysis()
     # extract_animate_words(file_r, file_w)
     # extract_words_by_label(file_r, file_w1, 1)
     # extract_words_by_label(file_r, file_w2, 0)
-    # arrange_balanced_data(file_ani, file_inani, file_w)
+    #arrange_balanced_data(file_ani, file_inani, file_w)
     # file_r = 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani_mid+spirit.csv'
     # file_w = 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani_mid+spirit+em.csv'
-    file_r = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bi3.csv'
-    file_w = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bi3+em.csv'
-    arrange_data_to_discriminant_analysis(file_em, file_r, file_w)
+    # file_r = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bi3.csv'
+    # file_w = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bi3+em.csv'
+    
     # xlsx_r = 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani_mid.xlsx'
     # csv_w = 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani_mid+micro.csv'
     # extract_words_by_attribute(xlsx_r, csv_w)

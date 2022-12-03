@@ -1,5 +1,5 @@
 # Animacy
-###### README最終更新: `2022-09-20`
+###### README最終更新: `2022-12-04`
 
 - **卒業研究** 
 - 名詞の有生性についての研究
@@ -68,3 +68,51 @@
   1. NGSLから語形変化が1つだけ載ってるものを名詞とみなし抽出
   2. そこからNLTKで「名詞 in 品詞名」であるものを抽出
 これにより名詞の数は2801語(NGSLすべて)→827語(①)→716語 から作成したデータ群
+
+## 研究再現について
+### 研究1
+``` 
+[使用したデータ｜データA・データB]
+extracted_nouns\BNC\nouns_bnc+lbl+key+bi1+em.csv
+extracted_nouns\BNC\nouns_bnc+lbl+key+bi2+em.csv
+
+[使用したデータ｜ランダムラベル（基準結果）]
+extracted_nouns\BNC\nouns_bnc+lbl+key+rl(1=369)+em.csv
+extracted_nouns\BNC\nouns_bnc+lbl+key+rl(1=369)(2)+em.csv
+extracted_nouns\BNC\nouns_bnc+lbl+key+rl(1=369)(3)+em.csv
+extracted_nouns\BNC\nouns_bnc+lbl+key+rl(1=631)+em.csv
+extracted_nouns\BNC\nouns_bnc+lbl+key+rl(1=631)(2)+em.csv
+extracted_nouns\BNC\nouns_bnc+lbl+key+rl(1=631)(3)+em.csv
+
+[分析に使用した関数]
+lda.py
+  loo()
+```
+
+### 研究2
+``` 
+[使用したデータ｜学習]
+extracted_nouns\BNC\nouns_bnc+lbl+key+bld(1).csv
+extracted_nouns\BNC\nouns_bnc+lbl+key+bld(2).csv
+extracted_nouns\BNC\nouns_bnc+lbl+key+bld(3).csv
+
+[使用したデータ｜判別・推論(spirit・collective・micro・plants)]
+extracted_nouns\BNC\nouns_bnc+lbl+key+ani_mid+spirit+em.csv
+extracted_nouns\BNC\nouns_bnc+lbl+key+ani_mid+collective+em.csv
+extracted_nouns\BNC\nouns_bnc+lbl+key+ani_mid+micro+em.csv
+extracted_nouns\BNC\nouns_bnc+lbl+key+ani_mid+plants+em.csv
+
+[使用したデータ｜animate基準・inanimate基準]
+extracted_nouns\BNC\nouns_bnc+lbl+key+bld(1).csv
+extracted_nouns\BNC\nouns_bnc+lbl+key+bld(2).csv
+extracted_nouns\BNC\nouns_bnc+lbl+key+bld(3).csv
+
+[分析に使用した関数]
+・animate基準・inanimate基準の算出
+  lda.py
+    loo_pred()
+
+・学習～推論
+  lda.py
+    prediction()
+```
