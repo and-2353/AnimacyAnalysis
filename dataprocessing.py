@@ -229,13 +229,14 @@ def extract_words_by_labels(file_r, file_w, labels):
 def extract_words_by_attribute(xlsx_r, csv_w):
     """
     有生性ラベル=2の語のうち、特定の属性（ex.植物）の語を抽出。
+    if文の条件属性によって変えないといけないので注意...
     """
     extracted_num = 0
     wb = openpyxl.load_workbook(xlsx_r)
     with open(csv_w, 'w', newline="") as f:
         writer = csv.writer(f)
         ws = wb['2']
-        for i in range(2, 263):
+        for i in range(2, 264):
             lemma = ws[f'a{i}'].value
             animacy = ws[f'b{i}'].value
             collective = ws[f'f{i}'].value
@@ -243,7 +244,7 @@ def extract_words_by_attribute(xlsx_r, csv_w):
             spirit = ws[f'h{i}'].value
             micro = ws[f'i{i}'].value
             special = ws[f'j{i}'].value
-            if micro != None:
+            if plant != None:
                 writer.writerow([lemma, animacy])
             
 
@@ -251,21 +252,20 @@ def extract_words_by_attribute(xlsx_r, csv_w):
 if __name__ == '__main__':
     file_em = 'data/embedding/embedding.pickle'
     # file_r = 'extracted_nouns/BNC/nouns_bnc+lbl+key.csv'
-    # file_ani = 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani.csv'
-    # file_inani = 'extracted_nouns/BNC/nouns_bnc+lbl+key-ani.csv'
+    
     # file_w = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bld(3).csv'
     # file_ww = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bld(3)+em.csv'
-    file_r = 'extracted_nouns/BNC/nouns_bnc+lbl+key.csv'
-    files = ['extracted_nouns/BNC/nouns_bnc+lbl+key+rl(1=369)(2).csv', 'extracted_nouns/BNC/nouns_bnc+lbl+key+rl(1=369)(3).csv']
-    files_ = ['extracted_nouns/BNC/nouns_bnc+lbl+key+rl(1=369)(2)+em.csv', 'extracted_nouns/BNC/nouns_bnc+lbl+key+rl(1=369)(3)+em.csv']
-    n_zero, n_one = 2839, 369
-    for i in range(2):
-        file_w = files[i]
-        file_ww = files_[i]
-        random_labeling(file_r, file_w, n_zero, n_one)
-        arrange_data_to_discriminant_analysis(file_em, file_w, file_ww)
+    # file_r = 'extracted_nouns/BNC/nouns_bnc+lbl+key.csv'
+    # files = ['extracted_nouns/BNC/nouns_bnc+lbl+key+rl(1=369)(2).csv', 'extracted_nouns/BNC/nouns_bnc+lbl+key+rl(1=369)(3).csv']
+    # files_ = ['extracted_nouns/BNC/nouns_bnc+lbl+key+rl(1=369)(2)+em.csv', 'extracted_nouns/BNC/nouns_bnc+lbl+key+rl(1=369)(3)+em.csv']
+    # n_zero, n_one = 2839, 369
+    # for i in range(2):
+    #     file_w = files[i]
+    #     file_ww = files_[i]
+    #     random_labeling(file_r, file_w, n_zero, n_one)
+    #     arrange_data_to_discriminant_analysis(file_em, file_w, file_ww)
     # file_w = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bld+em.csv'
-    # arrange_data_to_discriminant_analysis()
+    
     # extract_animate_words(file_r, file_w)
     # extract_words_by_label(file_r, file_w1, 1)
     # extract_words_by_label(file_r, file_w2, 0)
@@ -276,9 +276,19 @@ if __name__ == '__main__':
     # file_w = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bi3+em.csv'
     
     # xlsx_r = 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani_mid.xlsx'
-    # csv_w = 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani_mid+micro.csv'
+    # csv_w = 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani_mid+plant.csv'
+    # file_ww = 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani_mid+plant+em.csv'
     # extract_words_by_attribute(xlsx_r, csv_w)
+    # arrange_data_to_discriminant_analysis(file_em, csv_w, file_ww)
+    
     # file_r = 'extracted_nouns/BNC/nouns_bnc+lbl+key.csv'
     
     # labels = ['0', '1']
     # extract_words_by_labels(file_r, file_w, labels)
+    # file_ani = 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani.csv'
+    # file_inani = 'extracted_nouns/BNC/nouns_bnc+lbl+key-ani.csv'
+    for i in range(4, 11):
+        file_r = f'extracted_nouns/BNC/nouns_bnc+lbl+key+bld({i}).csv'
+        file_w = f'extracted_nouns/BNC/nouns_bnc+lbl+key+bld({i})+em.csv'
+        arrange_data_to_discriminant_analysis(file_em, file_r, file_w)
+        # arrange_balanced_data(file_ani, file_inani, file_w)

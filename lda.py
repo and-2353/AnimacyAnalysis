@@ -8,6 +8,7 @@ from pprint import pprint
 import pandas as pd
 import sklearn
 import re
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 from sklearn.model_selection import cross_validate
@@ -78,11 +79,11 @@ def lda(file_for_lda, print_missclassified_word=False):
     print('誤判別語数：', mistake)
 
 
-def prediction(file_for_fit1, file_for_fit2, file_for_fit3, file_for_pred, print_missclassified_word=False, print_category_animacy_value=True):
-    files_for_fit = [file_for_fit1, file_for_fit2, file_for_fit3]
+def prediction(files_for_fit, file_for_pred, print_missclassified_word=False, print_category_animacy_value=True):
+    #files_for_fit = [file_for_fit1, file_for_fit2, file_for_fit3]
     results = {}
-    for i in range(3):
-        file_for_fit = files_for_fit[i]
+    for file_for_fit in files_for_fit:
+        # file_for_fit = files_for_fit[i]
 
         # 0/1 のデータにfit
         df_fit = pd.read_csv(file_for_fit, encoding='utf-8')
@@ -98,37 +99,43 @@ def prediction(file_for_fit1, file_for_fit2, file_for_fit3, file_for_pred, print
         words_pred = df_pred['lemma']
         pred = clf.predict(X_pred)
         pred_proba = clf.predict_proba(X_pred)
+        
         for i, word in enumerate(words_pred):
             if word not in results:
-                results[word] = [pred[i], pred_proba[i][1]]
+                results[word] = [pred_proba[i][1]]
             else:
-                results[word].extend([pred[i], pred_proba[i][1]])
-    if print_missclassified_word:
-        print('\n|語|予測1|有生性あり(1)に所属する確率1|予測2|確率2|予測3|確率3|調和平均|\n|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|')
-        #print('\n|語|有生性あり(1)に所属する確率3回の調和平均|\n|:--:|:--:|')
-        #ms = []
-        for key, value in results.items():
-            m = mean([value[1], value[3], value[5]])
-            # ms.append(m)
-            #print(f'|{key}|{value[0]}|{value[1]:.4%}|{value[2]}|{value[3]:.4%}|{value[4]}|{value[5]:.4%}|{hmean:.4%}')
-            print(f'|{key}|{m:.4%}|')
-        # print(hmeans)
-        # print(f'全体の調和平均: {stats.hmean(hmeans):.4%}')
+                results[word].extend([pred_proba[i][1]])
         
-            # print('\n|語|予測|有生性なし(0)に所属する確率|\n|:--:|:--:|:--:|')
-            # for i, word in enumerate(words_pred):
-            #     print(f'|{word}|{pred[i]}|{pred_proba[i][0]:.4%}|')
+    # if print_missclassified_word:
+    #     print('\n|語|予測1|有生性あり(1)に所属する確率1|予測2|確率2|予測3|確率3|調和平均|\n|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|')
+    #     #print('\n|語|有生性あり(1)に所属する確率3回の調和平均|\n|:--:|:--:|')
+    #     #ms = []
+    #     for key, value in results.items():
+    #         m = mean([value[1], value[3], value[5]])
+            
+    #         # ms.append(m)
+    #         #print(f'|{key}|{value[0]}|{value[1]:.4%}|{value[2]}|{value[3]:.4%}|{value[4]}|{value[5]:.4%}|{hmean:.4%}')
+    #         print(f'|{key}|{m:.4%}|')
+    #     # print(hmeans)
+    #     # print(f'全体の調和平均: {stats.hmean(hmeans):.4%}')
+        
+    #         # print('\n|語|予測|有生性なし(0)に所属する確率|\n|:--:|:--:|:--:|')
+    #         # for i, word in enumerate(words_pred):
+    #         #     print(f'|{word}|{pred[i]}|{pred_proba[i][0]:.4%}|')
+    
     if print_category_animacy_value:
         means = []
         for key, value in results.items():
-            mean_ = mean([value[1], value[3], value[5]])
+            #print(len(value))
+            mean_ = mean(value)
             means.append(mean_)
-        print(mean(means))
+        
+        print("最終：", mean(means))
             
-def loo_pred(file_for_lda1, file_for_lda2, file_for_lda3):
-    file_for_ldas = [file_for_lda1, file_for_lda2, file_for_lda3]
+def loo_pred(file_for_ldas):
+    #file_for_ldas = [file_for_lda1, file_for_lda2, file_for_lda3]
     result = {'animates': [], 'inanimates': []}
-    for file_for_lda in file_for_ldas:
+    for file_for_lda in tqdm(file_for_ldas):
         df = pd.read_csv(file_for_lda, encoding='utf-8')
 
         X = df.drop(['lemma', 'animacy'], axis=1) # 説明変数: embedding
@@ -161,19 +168,30 @@ def loo_pred(file_for_lda1, file_for_lda2, file_for_lda3):
     
 
 if __name__ == '__main__':
-    file_for_fit1 = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bld(1)+em.csv'
-    file_for_fit2 = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bld(2)+em.csv'
-    file_for_fit3 = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bld(3)+em.csv'
+    # file_for_fit1 = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bld(1)+em.csv'
+    # file_for_fit2 = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bld(2)+em.csv'
+    # file_for_fit3 = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bld(3)+em.csv'
+    # #files_for_pred = ['extracted_nouns/BNC/nouns_bnc+lbl+key+ani_mid+plant+em.csv', 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani_mid+collective+em.csv', 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani_mid+spirit+em.csv', 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani_mid+micro+em.csv']
+    file_for_pred = 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani_mid+plant+em.csv'
+    # #names = ['plants', 'collective', 'spirit', 'micro']
+    # for i, file_for_pred in enumerate(files_for_pred):
+    #     #print(names[i])
+    #     prediction(file_for_fit1, file_for_fit2, file_for_fit3, file_for_pred, True, False)
+    # # file_for_pred = 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani_mid+plant+em.csv'
+    # # lda()
+    # files_ = ['extracted_nouns/BNC/nouns_bnc+lbl+key+bld(1)+em.csv','extracted_nouns/BNC/nouns_bnc+lbl+key+bld(2)+em.csv','extracted_nouns/BNC/nouns_bnc+lbl+key+bld(3)+em.csv']
+    file_for_ldas = []
+    for i in range(1,11):
+        file_for_lda = f'extracted_nouns/BNC/nouns_bnc+lbl+key+bld({i})+em.csv'
+        file_for_ldas.append(file_for_lda)
+        # loo(file_for_lda, False, False)
+    #loo_pred(file_for_ldas)
     files_for_pred = ['extracted_nouns/BNC/nouns_bnc+lbl+key+ani_mid+plant+em.csv', 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani_mid+collective+em.csv', 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani_mid+spirit+em.csv', 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani_mid+micro+em.csv']
     names = ['plants', 'collective', 'spirit', 'micro']
     for i, file_for_pred in enumerate(files_for_pred):
         print(names[i])
-        prediction(file_for_fit1, file_for_fit2, file_for_fit3, file_for_pred, True, False)
-    # # file_for_pred = 'extracted_nouns/BNC/nouns_bnc+lbl+key+ani_mid+plant+em.csv'
-    # # lda()
-    # files_ = ['extracted_nouns/BNC/nouns_bnc+lbl+key+bi1+em.csv', 'extracted_nouns/BNC/nouns_bnc+lbl+key+bi2+em.csv']
-    # for file_for_lda in files_:
-    #     loo(file_for_lda, False, True)
+        prediction(file_for_ldas, file_for_pred, print_missclassified_word=False, print_category_animacy_value=True)
+    
     
     # file_for_lda = 'extracted_nouns/BNC/nouns_bnc+lbl+key+bld(1)+em.csv'
     # loo_pred(file_for_lda1, file_for_lda2, file_for_lda3)
